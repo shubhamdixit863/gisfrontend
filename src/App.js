@@ -4,7 +4,7 @@ import './App.css';  // Assuming you have an App.css file for styling
 import { Map,Marker,Popup } from 'react-map-gl';
 import axios from 'axios';
 
-const api="http://localhost:8080/gis"
+const api="http://ec2-18-209-60-140.compute-1.amazonaws.com:8080/gis"
 const coordinatesList = [
   { id: 'newYork', lat: 40.7128, lng: -74.0060, city: "New York" },
   { id: 'losAngeles', lat: 34.0522, lng: -118.2437, city: "Los Angeles" },
