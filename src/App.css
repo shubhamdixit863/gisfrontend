@@ -1,0 +1,23 @@
+.app-container {
+  display: flex;
+  align-items: start;
+  gap: 20px; /* Adds space between map and slider */
+  padding: 20px;
+}
+
+.map-container {
+  flex-grow: 1;
+}
+
+.slider-container {
+  width: 200px; /* Adjust as needed */
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+
+.heading {
+  width: 100%;
+  text-align: center;
+  margin-bottom: 20px;
+}
