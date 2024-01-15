@@ -25,10 +25,11 @@ function App() {
   const [showPopup,setShowPopup]=React.useState({})
   const fetchGisData=(mapEvent,id)=>{
     console.log(mapEvent.target._lngLat,id);
+    
     // call the api fetch the data 
     axios.post(api,{latitude:mapEvent.target._lngLat.lat,longitude:mapEvent.target._lngLat.lng,distance:state.x})
     .then(res=>{
-      setShowPopup({...showPopup,[id]:`City:${id} TotalPopulation: ${res.data.total_population} AverageIncome: ${res.data.average_income}`})
+      setShowPopup({[id]:`TotalPopulation: ${res.data.total_population} AverageIncome: ${res.data.average_income}`})
     }).catch(err=>{
       console.log(err);
     })
@@ -51,7 +52,7 @@ function App() {
     initialViewState={{
       longitude: -122.4,
       latitude: 37.8,
-      zoom: 14
+      zoom: 5
     }}
     style={{width: 800, height: 800}}
     mapStyle="mapbox://styles/mapbox/streets-v9"
