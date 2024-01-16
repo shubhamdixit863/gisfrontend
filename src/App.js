@@ -4,8 +4,8 @@ import './App.css';  // Assuming you have an App.css file for styling
 import { Layer, Map,Marker,Popup, Source } from 'react-map-gl';
 import axios from 'axios';
 
-const api="http://ec2-18-209-60-140.compute-1.amazonaws.com:8080/gis"
-const localapi="http://localhost:8080/gis"
+const localapi="http://ec2-18-209-60-140.compute-1.amazonaws.com:8080/gis"
+//const localapi="http://localhost:8080/gis"
 
 const coordinatesList = [
   { id: 'newYork', lat: 40.7128, lng: -74.0060, city: "New York" },
@@ -66,13 +66,13 @@ function App() {
     const { lng, lat } = event.lngLat;
     
     // call the api fetch the data 
-    axios.post(api,{latitude:lat,longitude:lng,distance:state.x})
+    axios.post(localapi,{latitude:lat,longitude:lng,distance:(state.x)*1000})
     .then(response=>{
       setPopupInfo({
         show: true,
         latitude: lat,
         longitude: lng,
-        content: `TotalPopulation: ${response.data.total_population} AverageIncome: ${response.data.average_income}`
+        content: `TotalPopulation: ${Math.round(response.data.totalpopulation)} AverageIncome: ${Math.round(response.data.averageincome)}`
       });
     }).catch(err=>{
       console.log(err);
@@ -130,7 +130,7 @@ function App() {
  
     </div>
     <div className="slider-container">
-      <h2>Distance in Miles</h2>
+      <h2>Distance in KM</h2>
       {state.x}
     <Slider
         axis="x"
