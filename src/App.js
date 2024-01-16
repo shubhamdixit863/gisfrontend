@@ -1,10 +1,12 @@
 import * as React from 'react';
 import Slider from 'react-input-slider';
 import './App.css';  // Assuming you have an App.css file for styling
-import { Map,Marker,Popup } from 'react-map-gl';
+import { Layer, Map,Marker,Popup, Source } from 'react-map-gl';
 import axios from 'axios';
 
 const api="http://ec2-18-209-60-140.compute-1.amazonaws.com:8080/gis"
+const localapi="http://localhost:8080/gis"
+
 const coordinatesList = [
   { id: 'newYork', lat: 40.7128, lng: -74.0060, city: "New York" },
   { id: 'losAngeles', lat: 34.0522, lng: -118.2437, city: "Los Angeles" },
@@ -21,19 +23,66 @@ const coordinatesList = [
 
 function App() {
 
+  const [geojsonData, setGeojsonData] = React.useState({
+    type: 'FeatureCollection',
+    features: [], // Initially empty, will be updated with API data
+  });
+
+  React.useEffect(() => {
+    fetchYourApi().then(polygonData => {
+      const features = polygonData.map(polygon => ({
+        type: 'Feature',
+        geometry: JSON.parse(polygon)
+      }));
+
+      setGeojsonData({
+        type: 'FeatureCollection',
+        features: features
+      });
+      setIsLoading(false); 
+
+    });
+  }, []);
+
+  const polygonLayerStyle = {
+    id: 'polygon',
+    type: 'fill',
+    paint: {
+      'fill-color': '#007cbf',
+      'fill-opacity': 0.8
+    }
+  };
+
   const [state, setState] = React.useState({  x: 100 });
   const [showPopup,setShowPopup]=React.useState({})
-  const fetchGisData=(mapEvent,id)=>{
-    console.log(mapEvent.target._lngLat,id);
+  const [isLoading, setIsLoading] = React.useState(true); // Loader state
+  const [popupInfo, setPopupInfo] = React.useState({
+    show: false,
+    latitude: null,
+    longitude: null,
+    content: ''
+  });
+  const fetchGisData=(event)=>{
+    const { lng, lat } = event.lngLat;
     
     // call the api fetch the data 
-    axios.post(api,{latitude:mapEvent.target._lngLat.lat,longitude:mapEvent.target._lngLat.lng,distance:state.x})
-    .then(res=>{
-      setShowPopup({[id]:`TotalPopulation: ${res.data.total_population} AverageIncome: ${res.data.average_income}`})
+    axios.post(api,{latitude:lat,longitude:lng,distance:state.x})
+    .then(response=>{
+      setPopupInfo({
+        show: true,
+        latitude: lat,
+        longitude: lng,
+        content: `TotalPopulation: ${response.data.total_population} AverageIncome: ${response.data.average_income}`
+      });
     }).catch(err=>{
       console.log(err);
     })
 
+  }
+
+  async function fetchYourApi() {
+    const data=await axios.get(localapi);
+    return data.data;
   }
   const closePopup=(id)=>{
       
@@ -46,39 +95,36 @@ function App() {
   return (
     <div className="app-container">
        <h1 className="heading">GIS Data</h1>
+       {isLoading && <div className="loader"></div>} {/* Loader */}
+
      <div  className="map-container">
        <Map
+       onClick={fetchGisData}
     mapboxAccessToken="pk.eyJ1IjoibG9nYW4xMjM0IiwiYSI6ImNscmRmbW5jcDB5dzMya3Z4ZXk2cm8ydW4ifQ.oaD00gUhC99sHUmKqr1SLw"
     initialViewState={{
-      longitude: -122.4,
-      latitude: 37.8,
-      zoom: 5
+      longitude:  -96.454968 ,
+      latitude: 33.332216,
+      zoom: 8
     }}
     style={{width: 800, height: 800}}
     mapStyle="mapbox://styles/mapbox/streets-v9"
   >
-    {
-      coordinatesList.map(ele=>(
-        <div key={ele.id}>
-         <Marker longitude={ele.lng} latitude={ele.lat} anchor="bottom" onClick={(event)=>fetchGisData(event,ele.id)} >
-        <img src="/pin.png"  width={"80px"} height={"80px"} style={{cursor:"pointer"}}/>
-      </Marker>
-      { 
-          showPopup[ele.id] ?
-            <Popup longitude={ele.lng} latitude={ele.lat}
-              anchor="bottom"
-              onClose={() => closePopup(ele.id)}>
-             { showPopup[ele.id]}
-            </Popup>:""
+     <Source id="my-data" type="geojson" data={geojsonData} >
+        <Layer {...polygonLayerStyle}  />
+      </Source>
 
-         }
-        </div>
-       
-     
-      
-      
-      ))
-    }
+
+      {popupInfo.show && (
+            <Popup
+              latitude={popupInfo.latitude}
+              longitude={popupInfo.longitude}
+              closeButton={true}
+              closeOnClick={false}
+              onClose={() => setPopupInfo({ ...popupInfo, show: false })}
+            >
+              {popupInfo.content}
+            </Popup>
+          )}
 
   </Map>
  
